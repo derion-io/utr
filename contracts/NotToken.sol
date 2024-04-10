@@ -1,13 +1,8 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.20;
+pragma solidity >= 0.6.0;
 
-import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
-
-abstract contract NotToken is ERC165 {
-    // IERC165-supportsInterface
-    function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
-        return
-            interfaceId == 0x61206120 ||
-            super.supportsInterface(interfaceId);
+abstract contract NotToken  {
+    function isNotToken() external pure returns (bytes32) {
+        return "THIS CONTRACT IS NOT A TOKEN";
     }
 }

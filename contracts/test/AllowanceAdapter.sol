@@ -88,10 +88,8 @@ contract AllowanceAdapter is ReentrancyGuard, ERC1155Holder, ERC721Holder {
         }
     }
 
-    // IERC165-supportsInterface
-    function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
-        return interfaceId == 0x61206120 ||
-            super.supportsInterface(interfaceId);
+    function isNotToken() external pure returns (bytes32) {
+        return "THIS CONTRACT IS NOT A TOKEN";
     }
 
     function _transfer(
