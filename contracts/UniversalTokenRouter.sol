@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.20;
+pragma solidity 0.8.28;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
@@ -20,9 +20,6 @@ contract UniversalTokenRouter is ERC165, IUniversalTokenRouter {
     uint256 constant EIP_ETH       = 0;
 
     uint256 constant ERC_721_BALANCE = uint256(keccak256('UniversalTokenRouter.ERC_721_BALANCE'));
-
-    /// @dev transient pending payments
-    mapping(bytes32 => uint256) t_payments;
 
     /// @dev accepting ETH for user execution (e.g. WETH.withdraw)
     receive() external payable {}
@@ -58,7 +55,10 @@ contract UniversalTokenRouter is ERC165, IUniversalTokenRouter {
                 } else {
                     if (mode == PAYMENT) {
                         bytes32 key = keccak256(abi.encode(sender, input.recipient, input.eip, input.token, input.id));
-                        t_payments[key] = input.amountIn;
+                        uint amountIn = input.amountIn;
+                        assembly {
+                            tstore(key, amountIn)
+                        }
                     } else if (mode == TRANSFER) {
                         _transferToken(sender, input.recipient, input.eip, input.token, input.id, input.amountIn);
                     } else {
@@ -87,7 +87,9 @@ contract UniversalTokenRouter is ERC165, IUniversalTokenRouter {
                     bytes32 key = keccak256(abi.encodePacked(
                         sender, input.recipient, input.eip, input.token, input.id
                     ));
-                    delete t_payments[key];
+                    assembly {
+                        tstore(key, 0)
+                    }
                 }
             }
         }
@@ -128,9 +130,13 @@ contract UniversalTokenRouter is ERC165, IUniversalTokenRouter {
     /// @param amount token amount to pay with payment
     function discard(bytes memory payment, uint256 amount) public virtual override {
         bytes32 key = keccak256(payment);
-        require(t_payments[key] >= amount, 'UTR: INSUFFICIENT_PAYMENT');
-        unchecked {
-            t_payments[key] -= amount;
+        uint256 remain;
+        assembly {
+            remain := tload(key)
+        }
+        require(remain >= amount, 'UTR: INSUFFICIENT_PAYMENT');
+        assembly {
+            tstore(key, sub(remain, amount))
         }
     }
 
