@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
 import "@uniswap/lib/contracts/libraries/TransferHelper.sol";
 import "./interfaces/IUniversalTokenRouter.sol";
-import "./ArbitraryCallable.sol";
+import "./TokenChecker.sol";
 
 /// @title The implemetation of the EIP-6120.
 /// @author Derivable Labs
@@ -68,7 +68,8 @@ contract UniversalTokenRouter is ERC165, IUniversalTokenRouter {
             }
             if (action.code != address(0) || action.data.length > 0 || value > 0) {
                 require(
-                    ArbitraryCallable.isNotToken(action.code),
+                    TokenChecker.isNotToken(action.code) ||
+                    ERC165Checker.supportsInterface(action.code, 0x61206120),
                     "UTR: NOT_CALLABLE"
                 );
                 (bool success, bytes memory result) = action.code.call{value: value}(action.data);
