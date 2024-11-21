@@ -79,19 +79,7 @@ contract UniversalTokenRouter is ERC165, IUniversalTokenRouter {
                     }
                 }
             }
-            // clear all transient storages
-            for (uint256 j = 0; j < action.inputs.length; ++j) {
-                Input memory input = action.inputs[j];
-                if (input.mode == PAYMENT) {
-                    // transient storages
-                    bytes32 key = keccak256(abi.encodePacked(
-                        sender, input.recipient, input.eip, input.token, input.id
-                    ));
-                    assembly {
-                        tstore(key, 0)
-                    }
-                }
-            }
+            // it's ok to not clear the transient storages
         }
 
         // refund any left-over ETH
