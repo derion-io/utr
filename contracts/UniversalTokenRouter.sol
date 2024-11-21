@@ -41,8 +41,6 @@ contract UniversalTokenRouter is ERC165, IUniversalTokenRouter {
             output.amountOutMin = expected;
         }
 
-        address sender = msg.sender;
-
         for (uint256 i = 0; i < actions.length; ++i) {
             Action memory action = actions[i];
             uint256 value;
@@ -54,13 +52,15 @@ contract UniversalTokenRouter is ERC165, IUniversalTokenRouter {
                     value = input.amountIn;
                 } else {
                     if (mode == PAYMENT) {
-                        bytes32 key = keccak256(abi.encode(sender, input.recipient, input.eip, input.token, input.id));
+                        bytes32 key = keccak256(abi.encode(
+                            msg.sender, input.recipient, input.eip, input.token, input.id
+                        ));
                         uint amountIn = input.amountIn;
                         assembly {
                             tstore(key, amountIn)
                         }
                     } else if (mode == TRANSFER) {
-                        _transferToken(sender, input.recipient, input.eip, input.token, input.id, input.amountIn);
+                        _transferToken(msg.sender, input.recipient, input.eip, input.token, input.id, input.amountIn);
                     } else {
                         revert('UTR: INVALID_MODE');
                     }
@@ -84,8 +84,8 @@ contract UniversalTokenRouter is ERC165, IUniversalTokenRouter {
                 Input memory input = action.inputs[j];
                 if (input.mode == PAYMENT) {
                     // transient storages
-                    bytes32 key = keccak256(abi.encodePacked(
-                        sender, input.recipient, input.eip, input.token, input.id
+                    bytes32 key = keccak256(abi.encode(
+                        msg.sender, input.recipient, input.eip, input.token, input.id
                     ));
                     assembly {
                         tstore(key, 0)
@@ -97,7 +97,7 @@ contract UniversalTokenRouter is ERC165, IUniversalTokenRouter {
         // refund any left-over ETH
         uint256 leftOver = address(this).balance;
         if (leftOver > 0) {
-            TransferHelper.safeTransferETH(sender, leftOver);
+            TransferHelper.safeTransferETH(msg.sender, leftOver);
         }
 
         // verify balance changes
