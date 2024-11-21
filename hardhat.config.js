@@ -28,6 +28,19 @@ module.exports = {
     solidity: {
         compilers: [
             {
+                version: "0.8.28",
+                settings: {
+                    evmVersion: 'cancun',
+                    optimizer: {
+                        enabled: true,
+                        runs: 1000000,
+                    },
+                    metadata: {
+                        bytecodeHash: 'none',
+                    },
+                },
+            },
+            {
                 version: "0.8.20",
                 settings: {
                     evmVersion: 'paris',
