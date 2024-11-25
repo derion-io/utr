@@ -10,8 +10,8 @@ import "@uniswap/lib/contracts/libraries/TransferHelper.sol";
 import "./interfaces/IUniversalTokenRouter.sol";
 import "./TokenChecker.sol";
 
-/// @title The implemetation of the EIP-6120.
-/// @author Derivable Labs
+/// @title The implementation of the EIP-6120.
+/// @author Derion Labs
 contract UniversalTokenRouter is ERC165, IUniversalTokenRouter {
     uint256 constant PAYMENT       = 0;
     uint256 constant TRANSFER      = 1;
@@ -25,7 +25,7 @@ contract UniversalTokenRouter is ERC165, IUniversalTokenRouter {
     receive() external payable {}
 
     /// The main entry point of the router
-    /// @param outputs token behaviour for output verification
+    /// @param outputs token behavior for output verification
     /// @param actions router actions and inputs for execution
     function exec(
         Output[] memory outputs,
@@ -125,7 +125,7 @@ contract UniversalTokenRouter is ERC165, IUniversalTokenRouter {
     }
 
     /// Discard a part of a pending payment. Can be called from the input.action
-    /// to verify the payment without transfering any token.
+    /// to verify the payment without transferring any token.
     /// @param payment encoded payment data
     /// @param amount token amount to pay with payment
     function discard(bytes memory payment, uint256 amount) public virtual override {
