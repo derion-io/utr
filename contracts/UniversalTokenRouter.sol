@@ -21,9 +21,6 @@ contract UniversalTokenRouter is ERC165, IUniversalTokenRouter {
 
     uint256 constant ERC_721_BALANCE = uint256(keccak256('UniversalTokenRouter.ERC_721_BALANCE'));
 
-    /// @dev accepting ETH for user execution (e.g. WETH.withdraw)
-    receive() external payable {}
-
     /// The main entry point of the router
     /// @param outputs token behavior for output verification
     /// @param actions router actions and inputs for execution
