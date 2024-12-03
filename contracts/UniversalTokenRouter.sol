@@ -9,10 +9,11 @@ import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
 import "@uniswap/lib/contracts/libraries/TransferHelper.sol";
 import "./interfaces/IUniversalTokenRouter.sol";
 import "./TokenChecker.sol";
+import "./ZeroBalancePausable.sol";
 
 /// @title The implementation of the EIP-6120.
 /// @author Derion Labs
-contract UniversalTokenRouter is ERC165, IUniversalTokenRouter {
+contract UniversalTokenRouter is ZeroBalancePausable, ERC165, IUniversalTokenRouter {
     uint256 constant PAYMENT       = 0;
     uint256 constant TRANSFER      = 1;
     uint256 constant CALL_VALUE    = 2;
@@ -21,13 +22,16 @@ contract UniversalTokenRouter is ERC165, IUniversalTokenRouter {
 
     uint256 constant ERC_721_BALANCE = uint256(keccak256('UniversalTokenRouter.ERC_721_BALANCE'));
 
+    constructor(address pauser) ZeroBalancePausable(pauser) {
+    }
+
     /// The main entry point of the router
     /// @param outputs token behavior for output verification
     /// @param actions router actions and inputs for execution
     function exec(
         Output[] memory outputs,
         Action[] memory actions
-    ) external payable virtual override {
+    ) external payable virtual override whenNotPaused {
     unchecked {
         // track the expected balances before any action is executed
         for (uint256 i = 0; i < outputs.length; ++i) {

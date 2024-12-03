@@ -53,7 +53,7 @@ async function scenario01() {
 
     // deploy UniversalRouter
     const UniversalRouter = await ethers.getContractFactory("UniversalTokenRouter");
-    const utr = await UniversalRouter.deploy();
+    const utr = await UniversalRouter.deploy(owner.address);
     await utr.deployed();
 
     // deploy helper
