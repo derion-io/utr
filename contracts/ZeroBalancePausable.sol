@@ -21,8 +21,8 @@ contract ZeroBalancePausable is Context {
         }
     }
 
-    constructor(address stopper) {
-        PAUSER = stopper;
+    constructor(address pauser) {
+        PAUSER = pauser;
     }
 
     function pause() public payable {
