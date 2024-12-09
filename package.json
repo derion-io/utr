@@ -1,7 +1,7 @@
 {
-  "name": "@derivable/utr",
-  "description": "Universal Token Router for Derivable",
-  "version": "1.0.0",
+  "name": "@derion/utr",
+  "description": "Universal Token Router by Derion",
+  "version": "1.1.0",
   "license": "MIT",
   "scripts": {
     "clean": "rimraf ./build/ ./cache/ ./artifacts/",
