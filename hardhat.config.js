@@ -28,6 +28,19 @@ module.exports = {
     solidity: {
         compilers: [
             {
+                version: "0.8.28",
+                settings: {
+                    evmVersion: 'cancun',
+                    optimizer: {
+                        enabled: true,
+                        runs: 1000000,
+                    },
+                    metadata: {
+                        bytecodeHash: 'none',
+                    },
+                },
+            },
+            {
                 version: "0.8.20",
                 settings: {
                     evmVersion: 'paris',
@@ -96,7 +109,8 @@ module.exports = {
                 process.env.MAINNET_DEPLOYER ?? '0x0000000000000000000000000000000000000000000000000000000000000001',
             ],
             timeout: 900000,
-            chainId: 42161
+            chainId: 42161,
+            gasLimit: 12000000
         },
         arbitrumtest: {
             url: process.env.ARB_TESTNET_PROVIDER ?? 'https://endpoints.omniatech.io/v1/arbitrum/goerli/public',
@@ -113,7 +127,18 @@ module.exports = {
             ],
             timeout: 900000,
             chainId: 56,
+            gasLimit: 12000000,
             gasPrice: 3e9
+        },
+        opbnb: {
+            url: process.env.OPBNB_MAINNET_PROVIDER ?? 'https://1rpc.io/opbnb',
+            accounts: [
+                process.env.MAINNET_DEPLOYER ?? '0x0000000000000000000000000000000000000000000000000000000000000001',
+            ],
+            timeout: 900000,
+            chainId: 204,
+            gasPrice: 100,
+            gasLimit: 8000000,
         },
         basetestnet: {
             url: process.env.BASE_TESTNET_PROVIDER ?? 'https://goerli.base.org',
@@ -133,11 +158,20 @@ module.exports = {
         },
     },
     etherscan: {
+        customChains: [{
+            network: "opbnb",
+            chainId: 204,
+            urls: {
+                apiURL: "https://api-opbnb.bscscan.com/api",
+                browserURL: "https://opbnb.bscscan.com/"
+            }
+        }],
         apiKey: {
-            ethereum: process.env.ETHERSCAN_API_KEY,
-            arbitrumOne: process.env.ARBISCAN_API_KEY,
-            bsc: process.env.BSCSCAN_API_KEY,
-        }
+            ethereum: process.env.SCAN_API_KEY_1,
+            arbitrumOne: process.env.SCAN_API_KEY_42161,
+            bsc: process.env.SCAN_API_KEY_56,
+            opbnb: process.env.SCAN_API_KEY_204,
+        },
     },
     contractSizer: {
         alphaSort: true,

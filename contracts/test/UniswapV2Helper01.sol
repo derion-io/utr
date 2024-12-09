@@ -4,16 +4,10 @@ import "@uniswap/v2-periphery/contracts/libraries/UniswapV2Library.sol";
 import '@uniswap/v2-core/contracts/interfaces/IUniswapV2Factory.sol';
 import '@uniswap/v2-core/contracts/interfaces/IUniswapV2Pair.sol';
 import "@uniswap/lib/contracts/libraries/TransferHelper.sol";
+import "../NotToken.sol";
 
 interface IUniversalTokenRouter {
     function pay(bytes calldata payment, uint256 amount) external;
-}
-
-abstract contract NotToken {
-    // IERC165-supportsInterface
-    function supportsInterface(bytes4 interfaceId) public pure virtual returns (bool) {
-        return interfaceId == 0x61206120 || interfaceId == 0x01ffc9a7;
-    }
 }
 
 contract UniswapV2Helper01 is NotToken {

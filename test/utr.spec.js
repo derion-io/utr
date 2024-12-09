@@ -40,6 +40,16 @@ scenarios.forEach(function (scenario) {
                 data: (await wethAdapter.populateTransaction.doRevert('some reason')).data,
             }], opts)).revertedWith('some reason');
         });
+        it("Pausable", async function() {
+            const { utr, otherAccount } = await loadFixture(scenario.fixture);
+            await utr.unpause()
+            await expect(utr.pause()).revertedWith('NEED_VALUE')
+            await expect(utr.connect(otherAccount).pause()).revertedWith('UNAUTHORIZED')
+            await utr.pause({ value: 1 })
+            await expect(utr.exec([], [], opts)).revertedWith('PAUSED');
+            await utr.unpause()
+            await utr.exec([], [], opts)
+        });
         it("Invalid EIP", async function () {
             const { utr, wethAdapter, weth, owner } = await loadFixture(scenario.fixture);
             const INVALID_EIP = 200;

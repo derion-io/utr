@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.20;
+pragma solidity 0.8.28;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
@@ -8,10 +8,12 @@ import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165Checker.sol";
 import "@uniswap/lib/contracts/libraries/TransferHelper.sol";
 import "./interfaces/IUniversalTokenRouter.sol";
+import "./TokenChecker.sol";
+import "./ZeroBalancePausable.sol";
 
-/// @title The implemetation of the EIP-6120.
-/// @author Derivable Labs
-contract UniversalTokenRouter is ERC165, IUniversalTokenRouter {
+/// @title The implementation of the EIP-6120.
+/// @author Derion Labs
+contract UniversalTokenRouter is ZeroBalancePausable, ERC165, IUniversalTokenRouter {
     uint256 constant PAYMENT       = 0;
     uint256 constant TRANSFER      = 1;
     uint256 constant CALL_VALUE    = 2;
@@ -20,19 +22,16 @@ contract UniversalTokenRouter is ERC165, IUniversalTokenRouter {
 
     uint256 constant ERC_721_BALANCE = uint256(keccak256('UniversalTokenRouter.ERC_721_BALANCE'));
 
-    /// @dev transient pending payments
-    mapping(bytes32 => uint256) t_payments;
-
-    /// @dev accepting ETH for user execution (e.g. WETH.withdraw)
-    receive() external payable {}
+    constructor(address pauser) ZeroBalancePausable(pauser) {
+    }
 
     /// The main entry point of the router
-    /// @param outputs token behaviour for output verification
+    /// @param outputs token behavior for output verification
     /// @param actions router actions and inputs for execution
     function exec(
         Output[] memory outputs,
         Action[] memory actions
-    ) external payable virtual override {
+    ) external payable virtual override whenNotPaused {
     unchecked {
         // track the expected balances before any action is executed
         for (uint256 i = 0; i < outputs.length; ++i) {
@@ -42,8 +41,6 @@ contract UniversalTokenRouter is ERC165, IUniversalTokenRouter {
             require(expected >= balance, 'UTR: OUTPUT_BALANCE_OVERFLOW');
             output.amountOutMin = expected;
         }
-
-        address sender = msg.sender;
 
         for (uint256 i = 0; i < actions.length; ++i) {
             Action memory action = actions[i];
@@ -56,10 +53,15 @@ contract UniversalTokenRouter is ERC165, IUniversalTokenRouter {
                     value = input.amountIn;
                 } else {
                     if (mode == PAYMENT) {
-                        bytes32 key = keccak256(abi.encode(sender, input.recipient, input.eip, input.token, input.id));
-                        t_payments[key] = input.amountIn;
+                        bytes32 key = keccak256(abi.encode(
+                            msg.sender, input.recipient, input.eip, input.token, input.id
+                        ));
+                        uint amountIn = input.amountIn;
+                        assembly {
+                            tstore(key, amountIn)
+                        }
                     } else if (mode == TRANSFER) {
-                        _transferToken(sender, input.recipient, input.eip, input.token, input.id, input.amountIn);
+                        _transferToken(msg.sender, input.recipient, input.eip, input.token, input.id, input.amountIn);
                     } else {
                         revert('UTR: INVALID_MODE');
                     }
@@ -67,6 +69,7 @@ contract UniversalTokenRouter is ERC165, IUniversalTokenRouter {
             }
             if (action.code != address(0) || action.data.length > 0 || value > 0) {
                 require(
+                    TokenChecker.isNotToken(action.code) ||
                     ERC165Checker.supportsInterface(action.code, 0x61206120),
                     "UTR: NOT_CALLABLE"
                 );
@@ -82,10 +85,12 @@ contract UniversalTokenRouter is ERC165, IUniversalTokenRouter {
                 Input memory input = action.inputs[j];
                 if (input.mode == PAYMENT) {
                     // transient storages
-                    bytes32 key = keccak256(abi.encodePacked(
-                        sender, input.recipient, input.eip, input.token, input.id
+                    bytes32 key = keccak256(abi.encode(
+                        msg.sender, input.recipient, input.eip, input.token, input.id
                     ));
-                    delete t_payments[key];
+                    assembly {
+                        tstore(key, 0)
+                    }
                 }
             }
         }
@@ -93,7 +98,7 @@ contract UniversalTokenRouter is ERC165, IUniversalTokenRouter {
         // refund any left-over ETH
         uint256 leftOver = address(this).balance;
         if (leftOver > 0) {
-            TransferHelper.safeTransferETH(sender, leftOver);
+            TransferHelper.safeTransferETH(msg.sender, leftOver);
         }
 
         // verify balance changes
@@ -121,14 +126,18 @@ contract UniversalTokenRouter is ERC165, IUniversalTokenRouter {
     }
 
     /// Discard a part of a pending payment. Can be called from the input.action
-    /// to verify the payment without transfering any token.
+    /// to verify the payment without transferring any token.
     /// @param payment encoded payment data
     /// @param amount token amount to pay with payment
     function discard(bytes memory payment, uint256 amount) public virtual override {
         bytes32 key = keccak256(payment);
-        require(t_payments[key] >= amount, 'UTR: INSUFFICIENT_PAYMENT');
-        unchecked {
-            t_payments[key] -= amount;
+        uint256 remain;
+        assembly {
+            remain := tload(key)
+        }
+        require(remain >= amount, 'UTR: INSUFFICIENT_PAYMENT');
+        assembly {
+            tstore(key, sub(remain, amount))
         }
     }
 
