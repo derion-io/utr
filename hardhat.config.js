@@ -143,21 +143,49 @@ module.exports = {
             timeout: 20000,
             chainId: 8453
         },
+        polygon: {
+            url: process.env.POL_MAINNET_PROVIDER ?? 'https://polygon.llamarpc.com',
+            accounts: [
+                process.env.MAINNET_DEPLOYER ?? '0x0000000000000000000000000000000000000000000000000000000000000001',
+            ],
+            gasPrice: 87000000000,
+            gasLimit: 10000000,
+        },
+        poltestnet: {
+            url: process.env.POL_TESTNET_PROVIDER ?? 'https://rpc-amoy.polygon.technology',
+            accounts: [
+                process.env.TESTNET_DEPLOYER ?? '0x0000000000000000000000000000000000000000000000000000000000000001',
+            ],
+            gasPrice: 35000000000,
+            gasLimit: 10000000,
+        },
     },
     etherscan: {
-        customChains: [{
-            network: "opbnb",
-            chainId: 204,
-            urls: {
-                apiURL: "https://api-opbnb.bscscan.com/api",
-                browserURL: "https://opbnb.bscscan.com/"
-            }
-        }],
+        customChains: [
+            {
+                network: "opbnb",
+                chainId: 204,
+                urls: {
+                    apiURL: "https://api-opbnb.bscscan.com/api",
+                    browserURL: "https://opbnb.bscscan.com/"
+                }
+            },
+            {
+                network: "polygonAmoy",
+                chainId: 80002,
+                urls: {
+                    apiURL: "https://api-amoy.polygonscan.com/api",
+                    browserURL: "https://amoy.polygonscan.com"
+                },
+            },
+        ],
         apiKey: {
             ethereum: process.env.SCAN_API_KEY_1,
             arbitrumOne: process.env.SCAN_API_KEY_42161,
             bsc: process.env.SCAN_API_KEY_56,
             opbnb: process.env.SCAN_API_KEY_204,
+            polygonAmoy: process.env.SCAN_API_KEY_POLTESTNET,
+            polygon: process.env.SCAN_API_KEY_POLTESTNET,
         },
     },
     contractSizer: {
