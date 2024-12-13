@@ -148,7 +148,7 @@ module.exports = {
             accounts: [
                 process.env.MAINNET_DEPLOYER ?? '0x0000000000000000000000000000000000000000000000000000000000000001',
             ],
-            gasPrice: 87000000000,
+            gasPrice: 45e9,
             gasLimit: 10000000,
         },
         poltestnet: {
@@ -184,8 +184,8 @@ module.exports = {
             arbitrumOne: process.env.SCAN_API_KEY_42161,
             bsc: process.env.SCAN_API_KEY_56,
             opbnb: process.env.SCAN_API_KEY_204,
+            polygon: process.env.SCAN_API_KEY_137,
             polygonAmoy: process.env.SCAN_API_KEY_POLTESTNET,
-            polygon: process.env.SCAN_API_KEY_POLTESTNET,
         },
     },
     contractSizer: {
