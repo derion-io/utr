@@ -10,8 +10,9 @@ import "@uniswap/lib/contracts/libraries/TransferHelper.sol";
 import "./interfaces/IUniversalTokenRouter.sol";
 import "./TokenChecker.sol";
 import "./ZeroBalancePausable.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 
-/// @title The implementation of the EIP-6120.
+/// @title The implemetation of the EIP-6120.
 /// @author Derion Labs
 contract UniversalTokenRouter is ZeroBalancePausable, ERC165, IUniversalTokenRouter {
     uint256 constant PAYMENT       = 0;
@@ -73,7 +74,11 @@ contract UniversalTokenRouter is ZeroBalancePausable, ERC165, IUniversalTokenRou
                 require(
                     TokenChecker.isNotToken(action.code) ||
                     ERC165Checker.supportsInterface(action.code, 0x61206120),
-                    "UTR: NOT_CALLABLE"
+                    string(abi.encodePacked(
+                        "UTR: NOT_CALLABLE",
+                        " >> ",
+                        Strings.toHexString(action.code)
+                    ))
                 );
                 (bool success, bytes memory result) = action.code.call{value: value}(action.data);
                 if (!success) {
