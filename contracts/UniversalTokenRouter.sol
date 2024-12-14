@@ -31,14 +31,16 @@ contract UniversalTokenRouter is ZeroBalancePausable, ERC165, IUniversalTokenRou
     function exec(
         Output[] memory outputs,
         Action[] memory actions
-    ) external payable virtual override whenNotPaused {
+    ) external payable virtual override whenNotPaused returns (uint[] memory amountOuts, uint gasLeft) {
     unchecked {
+        amountOuts = new uint[](outputs.length);
         // track the expected balances before any action is executed
         for (uint256 i = 0; i < outputs.length; ++i) {
             Output memory output = outputs[i];
             uint256 balance = _balanceOf(output);
             uint256 expected = output.amountOutMin + balance;
             require(expected >= balance, 'UTR: OUTPUT_BALANCE_OVERFLOW');
+            amountOuts[i] = output.amountOutMin;
             output.amountOutMin = expected;
         }
 
@@ -107,7 +109,9 @@ contract UniversalTokenRouter is ZeroBalancePausable, ERC165, IUniversalTokenRou
             uint256 balance = _balanceOf(output);
             // NOTE: output.amountOutMin is reused as `expected`
             require(balance >= output.amountOutMin, 'UTR: INSUFFICIENT_OUTPUT_AMOUNT');
+            amountOuts[i] += balance - output.amountOutMin;
         }
+        gasLeft = gasleft();
     } }
     
     /// Spend the pending payment. Intended to be called from the input.action.
