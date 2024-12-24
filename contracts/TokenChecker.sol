@@ -2,7 +2,7 @@
 pragma solidity >= 0.6.0;
 
 library TokenChecker {
-    bytes32 constant ERROR_NOT_A_TOKEN = keccak256(abi.encodeWithSignature("Error(string)", "THIS IS NOT A TOKEN"));
+    bytes32 constant RESULT_HASH = keccak256(abi.encode("THIS IS NOT A TOKEN"));
 
     /**
      * @notice Query if a contract implements NotToken to be arbitrarily called.
@@ -15,6 +15,6 @@ library TokenChecker {
     function isNotToken(address target) internal view returns (bool) {
         bytes memory data = abi.encodeWithSignature("allowance(address,address)", address(0), address(0));
         (bool success, bytes memory result) = target.staticcall(data);
-        return !success && keccak256(result) == ERROR_NOT_A_TOKEN;
+        return success && keccak256(result) == RESULT_HASH;
     }
 }

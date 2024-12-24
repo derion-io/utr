@@ -6,10 +6,10 @@ pragma solidity >= 0.6.0;
  * preventing token contracts from accidentally implementing it.
  */
 abstract contract NotToken  {
-    function allowance(address, address) external pure {
-        revert("THIS IS NOT A TOKEN");
+    function allowance(address, address) external pure returns (string memory) {
+        return "THIS IS NOT A TOKEN";
     }
-    function isApprovedForAll(address, address) external pure {
-        revert("THIS IS NOT A TOKEN");
+    function isApprovedForAll(address, address) external pure returns (string memory) {
+        return "THIS IS NOT A TOKEN";
     }
 }
