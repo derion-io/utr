@@ -144,6 +144,29 @@ contract UniversalTokenRouter is ZeroBalancePausable, ERC165, IUniversalTokenRou
         assembly {
             remain := tload(key)
         }
+        if (remain < amount) {
+            (
+                address sender,
+                address recipient,
+                uint256 eip,
+                address token,
+                uint256 id
+            ) = abi.decode(payment, (address, address, uint256, address, uint256));
+            revert(string(abi.encodePacked(
+                'UTR: INSUFFICIENT_PAYMENT: ',
+                Strings.toString(remain),
+                ' < ',
+                Strings.toString(amount),
+                ', sender: ',
+                Strings.toHexString(sender),
+                ', recipient: ',
+                Strings.toHexString(recipient),
+                ', token: ',
+                Strings.toHexString(token),
+                eip == 20 ? bytes('') : abi.encodePacked(', eip: ', Strings.toString(eip)),
+                id == 0 ? bytes('') : abi.encodePacked(', id: ', Strings.toString(id))
+            )));
+        }
         require(remain >= amount, 'UTR: INSUFFICIENT_PAYMENT');
         assembly {
             tstore(key, sub(remain, amount))
