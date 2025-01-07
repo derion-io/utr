@@ -102,6 +102,50 @@ scenarios.forEach(function (scenario) {
                 0,
             )
         })
+        it("authorization", async function () {
+            const { utr, owner, otherAccount, paymentTest } = await loadFixture(scenario.fixture);
+            await expect(utr.exec([], [{
+                inputs: [],
+                code: paymentTest.address,
+                data: (await paymentTest.populateTransaction.utrDiscard(owner.address, 1)).data,
+            }]), 'no input').revertedWith('INSUFFICIENT_PAYMENT')
+            await expect(utr.exec([], [{
+                inputs: [{
+                    mode: PAYMENT,
+                    eip: 0,
+                    token: AddressZero,
+                    id: 0,
+                    amountIn: 1,
+                    recipient: paymentTest.address,
+                }],
+                code: paymentTest.address,
+                data: (await paymentTest.populateTransaction.utrDiscard(otherAccount.address, 1)).data,
+            }]), 'fake sender').revertedWith('INSUFFICIENT_PAYMENT')
+            await expect(utr.exec([], [{
+                inputs: [{
+                    mode: PAYMENT,
+                    eip: 0,
+                    token: AddressZero,
+                    id: 0,
+                    amountIn: 1,
+                    recipient: paymentTest.address,
+                }],
+                code: paymentTest.address,
+                data: (await paymentTest.populateTransaction.utrDiscard(owner.address, 2)).data,
+            }]), 'over spend').revertedWith('INSUFFICIENT_PAYMENT')
+            await utr.exec([], [{
+                inputs: [{
+                    mode: PAYMENT,
+                    eip: 0,
+                    token: AddressZero,
+                    id: 0,
+                    amountIn: 1,
+                    recipient: paymentTest.address,
+                }],
+                code: paymentTest.address,
+                data: (await paymentTest.populateTransaction.utrDiscard(owner.address, 1)).data,
+            }])
+        })
         it("OUTPUT_BALANCE_OVERFLOW", async function () {
             const { utr, owner, weth, wethAdapter, erc20Factory } = await loadFixture(scenario.fixture);
             const maxSupplyToken = await erc20Factory.deploy(MaxUint256);
