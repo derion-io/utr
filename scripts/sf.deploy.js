@@ -15,6 +15,24 @@ async function main() {
     // Connect to the network
     const provider = new ethers.providers.JsonRpcProvider(url);
     const singletonFactoryAddress = "0xce0042B868300000d44A59004Da54A005ffdcf9f";
+
+    const initBytecode = initCodeUTR + pauserHex.slice(2)
+
+    // compute address
+    const initCodeHash = ethers.utils.keccak256(initBytecode)
+    const address = ethers.utils.getCreate2Address(
+        singletonFactoryAddress,
+        saltHex,
+        initCodeHash,
+    )
+    console.log('UTR:', address)
+
+    const byteCodeOfFinalAddress = await provider.getCode(address)
+    if (byteCodeOfFinalAddress != '0x') {
+        console.error("Code already exists")
+        return
+    }
+
     const contract = new ethers.Contract(singletonFactoryAddress, SingletonFactoryABI, provider);
     const wallet = new ethers.Wallet(accounts[0], provider);
     const contractWithSigner = contract.connect(wallet);
@@ -26,7 +44,7 @@ async function main() {
 
     try {
         const deployTx = await contractWithSigner.deploy(
-            initCodeUTR + pauserHex.slice(2),
+            initBytecode,
             saltHex,
             {gasLimit, gasPrice}
         );
