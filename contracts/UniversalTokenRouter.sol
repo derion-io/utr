@@ -23,6 +23,8 @@ contract UniversalTokenRouter is ZeroBalancePausable, ERC165, IUniversalTokenRou
 
     uint256 constant ERC_721_BALANCE = uint256(keccak256('UniversalTokenRouter.ERC_721_BALANCE'));
 
+    mapping(bytes32 => uint256) t_payments;
+
     constructor(address pauser) ZeroBalancePausable(pauser) {
     }
 
@@ -60,9 +62,7 @@ contract UniversalTokenRouter is ZeroBalancePausable, ERC165, IUniversalTokenRou
                             msg.sender, input.recipient, input.eip, input.token, input.id
                         ));
                         uint amountIn = input.amountIn;
-                        assembly {
-                            tstore(key, amountIn)
-                        }
+                        t_payments[key] = amountIn;
                     } else if (mode == TRANSFER) {
                         _transferToken(msg.sender, input.recipient, input.eip, input.token, input.id, input.amountIn);
                     } else {
@@ -95,9 +95,7 @@ contract UniversalTokenRouter is ZeroBalancePausable, ERC165, IUniversalTokenRou
                     bytes32 key = keccak256(abi.encode(
                         msg.sender, input.recipient, input.eip, input.token, input.id
                     ));
-                    assembly {
-                        tstore(key, 0)
-                    }
+                    delete t_payments[key];
                 }
             }
         }
@@ -140,14 +138,9 @@ contract UniversalTokenRouter is ZeroBalancePausable, ERC165, IUniversalTokenRou
     /// @param amount token amount to pay with payment
     function discard(bytes memory payment, uint256 amount) public virtual override {
         bytes32 key = keccak256(payment);
-        uint256 remain;
-        assembly {
-            remain := tload(key)
-        }
+        uint256 remain = t_payments[key];
         require(remain >= amount, 'UTR: INSUFFICIENT_PAYMENT');
-        assembly {
-            tstore(key, sub(remain, amount))
-        }
+        t_payments[key] -= amount;
     }
 
     // IERC165-supportsInterface
