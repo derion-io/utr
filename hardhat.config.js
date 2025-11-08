@@ -179,14 +179,7 @@ module.exports = {
                 },
             },
         ],
-        apiKey: {
-            ethereum: process.env.SCAN_API_KEY_1,
-            arbitrumOne: process.env.SCAN_API_KEY_42161,
-            bsc: process.env.SCAN_API_KEY_56,
-            opbnb: process.env.SCAN_API_KEY_204,
-            polygon: process.env.SCAN_API_KEY_137,
-            polygonAmoy: process.env.SCAN_API_KEY_POLTESTNET,
-        },
+        apiKey: process.env.SCAN_API_KEY,
     },
     contractSizer: {
         alphaSort: true,
