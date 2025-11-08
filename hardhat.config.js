@@ -115,7 +115,7 @@ module.exports = {
             timeout: 900000,
             chainId: 56,
             gasLimit: 12000000,
-            gasPrice: 3e9
+            gasPrice: 5e7
         },
         opbnb: {
             url: process.env.OPBNB_MAINNET_PROVIDER ?? 'https://1rpc.io/opbnb',
